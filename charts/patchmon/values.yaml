@@ -1,0 +1,154 @@
+image:
+  backend:
+    repository: ghcr.io/patchmon/patchmon-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: ghcr.io/patchmon/patchmon-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+replicaCount:
+  backend: 1
+  frontend: 1
+
+service:
+  backend:
+    type: ClusterIP
+    port: 3001
+  frontend:
+    type: ClusterIP
+    port: 3000
+
+# Choose ONE exposure method
+gatewayAPI:
+  enabled: true
+  parentRefs:
+    - name: main-gateway
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - patchmon.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - port: 3000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: patchmon.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+
+patchmon:
+  logLevel: info
+
+  server:
+    protocol: https
+    host: patchmon.example.com
+    port: 443
+    corsOrigin: https://patchmon.example.com
+    trustProxy: true
+    enableHsts: true
+
+  jwt:
+    # If empty, a random value is generated and persisted in the Secret via lookup.
+    secret: ""
+    expiresIn: "1h"
+    refreshExpiresIn: "7d"
+
+  dbPool:
+    connectionLimit: 30
+    poolTimeout: 20
+    connectTimeout: 10
+    idleTimeout: 300
+    maxLifetime: 1800
+
+  rateLimit:
+    windowMs: 900000
+    max: 5000
+    authWindowMs: 600000
+    authMax: 500
+    agentWindowMs: 60000
+    agentMax: 1000
+
+  timezone: "UTC"
+
+  persistence:
+    agentFiles:
+      enabled: true
+      accessModes: ["ReadWriteOnce"]
+      size: 1Gi
+      storageClassName: ""
+
+  redis:
+    host: ""
+    db: 0
+
+# -----------------------
+# Database configuration
+# -----------------------
+database:
+  mode: internal # internal | external
+
+postgres:
+  image: postgres:17-alpine
+  storage:
+    size: 10Gi
+    # storageClassName: ""
+  auth:
+    database: patchmon_db
+    username: patchmon_user
+    # password stored in chart secret (POSTGRES_PASSWORD)
+    # existingSecret: ""
+    # existingSecretPasswordKey: "password"
+
+external:
+  postgres:
+    # If uri is set (direct or from secret), other values are ignored.
+    uri: ""
+    uriFromSecret:
+      name: ""     # CNPG: "<clusterName>-app"
+      key: "uri"
+
+    # Used only when uri isn't set
+    host: ""
+    port: 5432
+    database: "patchmon_db"
+    username: "patchmon_user"
+    password: "" # discouraged; prefer passwordFromSecret
+    passwordFromSecret:
+      name: ""
+      key: "password"
+
+    # Optional if you are constructing (ignored if uri is used)
+    sslMode: ""  # e.g. "require"
+
+# -----------------------
+# Valkey
+# -----------------------
+valkey:
+  enabled: true
+
+  service:
+    port: 6379
+
+  replica:
+    enabled: true
+    persistence:
+      size: 1Gi
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+

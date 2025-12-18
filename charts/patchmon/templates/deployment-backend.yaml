@@ -1,0 +1,107 @@
+{{- include "patchmon.db.external.validate" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "patchmon.fullname" . }}-backend
+spec:
+  replicas: {{ .Values.replicaCount.backend }}
+  selector:
+    matchLabels:
+      {{- include "patchmon.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "patchmon.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      containers:
+        - name: backend
+          image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}"
+          imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: {{ include "patchmon.fullname" . }}-backend
+
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "patchmon.fullname" . }}
+                  key: JWT_SECRET
+
+            # ----------------
+            # Database settings
+            # ----------------
+
+            {{- $hasUriVal := and .Values.external.postgres.uri (ne .Values.external.postgres.uri "") -}}
+            {{- $hasUriSecret := and .Values.external.postgres.uriFromSecret.name (ne .Values.external.postgres.uriFromSecret.name "") -}}
+            {{- $hasPwSecret := and .Values.external.postgres.passwordFromSecret.name (ne .Values.external.postgres.passwordFromSecret.name "") -}}
+
+            {{- if eq .Values.database.mode "internal" }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "patchmon.postgres.passwordSecretName" . | quote }}
+                  key: {{ include "patchmon.postgres.passwordSecretKey" . | quote }}
+
+            - name: DATABASE_URL
+              value: "postgresql://{{ .Values.postgres.auth.username }}:$(POSTGRES_PASSWORD)@{{ include "patchmon.fullname" . }}-postgres:5432/{{ .Values.postgres.auth.database }}"
+            {{- else }}
+
+              {{- if and (not $hasUriVal) $hasUriSecret }}
+            - name: EXT_PG_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.external.postgres.uriFromSecret.name | quote }}
+                  key: {{ .Values.external.postgres.uriFromSecret.key | quote }}
+              {{- end }}
+
+              {{- if and (not $hasUriVal) (not $hasUriSecret) $hasPwSecret }}
+            - name: EXT_PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.external.postgres.passwordFromSecret.name | quote }}
+                  key: {{ .Values.external.postgres.passwordFromSecret.key | quote }}
+              {{- end }}
+
+              {{- if $hasUriVal }}
+            - name: DATABASE_URL
+              value: {{ .Values.external.postgres.uri | quote }}
+              {{- else if $hasUriSecret }}
+            - name: DATABASE_URL
+              value: "$(EXT_PG_URI)"
+              {{- else }}
+            - name: DATABASE_URL
+              value: "postgresql://{{ .Values.external.postgres.username }}:{{- if .Values.external.postgres.password -}}{{ .Values.external.postgres.password }}{{- else -}}$(EXT_PG_PASSWORD){{- end -}}@{{ .Values.external.postgres.host }}:{{ .Values.external.postgres.port }}/{{ .Values.external.postgres.database }}{{- if .Values.external.postgres.sslMode -}}?sslmode={{ .Values.external.postgres.sslMode }}{{- end -}}"
+              {{- end }}
+
+            {{- end }}
+
+
+            # ---------------
+            # Valkey
+            # ---------------
+            - name: REDIS_HOST
+              value: {{ default (printf "%s-valkey" .Release.Name) .Values.patchmon.redis.host | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.valkey.service.port | quote }}
+            - name: REDIS_DB
+              value: {{ .Values.patchmon.redis.db | quote }}
+
+          volumeMounts:
+            - name: agent-files
+              mountPath: /app/agents
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+      volumes:
+        - name: agent-files
+          {{- if .Values.patchmon.persistence.agentFiles.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "patchmon.fullname" . }}-agent-files
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

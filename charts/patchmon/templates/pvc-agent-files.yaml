@@ -1,0 +1,14 @@
+{{- if .Values.patchmon.persistence.agentFiles.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "patchmon.fullname" . }}-agent-files
+spec:
+  accessModes: {{ toYaml .Values.patchmon.persistence.agentFiles.accessModes | nindent 2 }}
+  resources:
+    requests:
+      storage: {{ .Values.patchmon.persistence.agentFiles.size | quote }}
+  {{- if .Values.patchmon.persistence.agentFiles.storageClassName }}
+  storageClassName: {{ .Values.patchmon.persistence.agentFiles.storageClassName | quote }}
+  {{- end }}
+{{- end }}

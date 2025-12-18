@@ -1,0 +1,18 @@
+PatchMon installed.
+
+Frontend:
+  Service: {{ include "patchmon.fullname" . }}-frontend:{{ .Values.service.frontend.port }}
+
+Backend:
+  Service: {{ include "patchmon.fullname" . }}-backend:{{ .Values.service.backend.port }}
+
+Exposure:
+{{- if .Values.gatewayAPI.enabled }}
+  Gateway API: HTTPRoute/{{ include "patchmon.fullname" . }}
+{{- end }}
+{{- if .Values.ingress.enabled }}
+  Ingress: {{ include "patchmon.fullname" . }}
+{{- end }}
+
+Database mode: {{ .Values.database.mode }}
+Valkey subchart enabled: {{ .Values.valkey.enabled }}
