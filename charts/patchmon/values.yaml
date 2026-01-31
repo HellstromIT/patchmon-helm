@@ -101,7 +101,7 @@ database:
   mode: internal # internal | external
 
 postgres:
-  image: postgres:17-alpine
+  image: postgres:18-alpine
   storage:
     size: 10Gi
     # storageClassName: ""
