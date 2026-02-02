@@ -39,7 +39,11 @@ jobs:
         run: |
           set -euo pipefail
           KUBECONFORM_VERSION="0.7.0"
-          curl -sSL -o /usr/local/bin/kubeconform \
-            "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-amd64"
-          chmod +x /usr/local/bin/kubeconform
+          OS="linux"
+          ARCH="amd64"
+          curl -sSL -o /tmp/kubeconform \
+            "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-${OS}-${ARCH}"
+          chmod +x /tmp/kubeconform
+          install -m 0755 /tmp/kubeconform /usr/local/bin/kubeconform
+          kubeconform -v
           kubeconform -summary -strict -ignore-missing-schemas /tmp/patchmon.yaml
