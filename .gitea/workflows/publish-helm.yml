@@ -1,0 +1,42 @@
+name: publish-helm
+
+on:
+  push:
+    tags:
+      - "patchmon-*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        run: |
+          curl -sSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm version
+
+      - name: Package chart
+        run: |
+          mkdir -p dist
+          helm dependency update charts/patchmon
+          helm package charts/patchmon --destination dist
+          ls -lah dist
+
+      - name: Upload to Gitea Package Registry (Helm)
+        env:
+          GITEA_SERVER_URL: ${{ gitea.server_url }}
+          OWNER: ${{ gitea.repository_owner }}
+          USERNAME: ${{ secrets.GITEAUSERNAME }}
+          TOKEN: ${{ secrets.GITEATOKEN }}
+        run: |
+          set -euo pipefail
+          CHART_TGZ="$(ls -1 dist/*.tgz | head -n1)"
+          echo "Uploading: ${CHART_TGZ}"
+
+          curl --fail -X POST \
+            --user "${USERNAME}:${TOKEN}" \
+            --upload-file "${CHART_TGZ}" \
+            "${GITEA_SERVER_URL}/api/packages/${OWNER}/helm/api/charts"
+
