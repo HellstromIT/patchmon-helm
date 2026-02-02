@@ -17,6 +17,10 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
           helm version
 
+      - name: Build chart dependencies
+        run: |
+          helm dependency build charts/patchmon
+
       - name: Lint chart
         run: |
           helm lint charts/patchmon
