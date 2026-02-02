@@ -26,6 +26,10 @@ jobs:
         run: |
           helm dependency build charts/patchmon
 
+      - name: Ensure Chart.lock wasn’t modified by CI
+        run: |
+          git diff --exit-code charts/patchmon/Chart.lock
+
       - name: Lint chart
         run: |
           helm lint charts/patchmon
