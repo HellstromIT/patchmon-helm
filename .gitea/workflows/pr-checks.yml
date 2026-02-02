@@ -17,6 +17,19 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
           helm version
 
+      - name: Add Helm repos needed for dependencies
+        run: |
+          helm repo add valkey https://valkey.io/valkey-helm/
+          helm repo update
+
+      - name: Build chart dependencies
+        run: |
+          helm dependency build charts/patchmon
+
+      - name: Ensure Chart.lock wasn’t modified by CI
+        run: |
+          git diff --exit-code charts/patchmon/Chart.lock
+
       - name: Lint chart
         run: |
           helm lint charts/patchmon
@@ -27,10 +40,16 @@ jobs:
           helm template patchmon charts/patchmon > /tmp/patchmon.yaml
 
       - name: kubeconform (K8s schema validation)
+        shell: bash
         run: |
           set -euo pipefail
           KUBECONFORM_VERSION="0.7.0"
-          curl -sSL -o /usr/local/bin/kubeconform \
-            "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-amd64"
-          chmod +x /usr/local/bin/kubeconform
+          OS="linux"
+          ARCH="amd64"
+          curl -sSL -o /tmp/kubeconform.tar.gz \
+            "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-${OS}-${ARCH}.tar.gz"
+          tar -xzf /tmp/kubeconform.tar.gz -C /tmp
+          chmod +x /tmp/kubeconform
+          install -m 0755 /tmp/kubeconform /usr/local/bin/kubeconform
+          kubeconform -v
           kubeconform -summary -strict -ignore-missing-schemas /tmp/patchmon.yaml

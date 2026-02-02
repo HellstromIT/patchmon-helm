@@ -33,3 +33,5 @@ tags
 # Built Visual Studio Code Extensions
 *.vsix
 
+charts/patchmon/charts/
+charts/patchmon/test-values.yaml

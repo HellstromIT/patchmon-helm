@@ -17,10 +17,15 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
           helm version
 
+      - name: Add Helm repos needed for dependencies
+        run: |
+          helm repo add valkey https://valkey.io/valkey-helm/
+          helm repo update
+
       - name: Package chart
         run: |
           mkdir -p dist
-          helm dependency update charts/patchmon
+          helm dependency build charts/patchmon
           helm package charts/patchmon --destination dist
           ls -lah dist
 
