@@ -36,6 +36,7 @@ jobs:
           helm template patchmon charts/patchmon > /tmp/patchmon.yaml
 
       - name: kubeconform (K8s schema validation)
+        shell: bash
         run: |
           set -euo pipefail
           KUBECONFORM_VERSION="0.7.0"
