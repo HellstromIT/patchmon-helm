@@ -1,11 +1,11 @@
 image:
   backend:
     repository: ghcr.io/patchmon/patchmon-backend
-    tag: latest
+    # tag: latest
     pullPolicy: IfNotPresent
   frontend:
     repository: ghcr.io/patchmon/patchmon-frontend
-    tag: latest
+    # tag: latest
     pullPolicy: IfNotPresent
 
 replicaCount:
