@@ -1,0 +1,36 @@
+name: pr-checks
+
+on:
+  pull_request:
+    paths:
+      - "charts/patchmon/**"
+
+jobs:
+  helm-lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        run: |
+          curl -sSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm version
+
+      - name: Lint chart
+        run: |
+          helm lint charts/patchmon
+
+      - name: Render templates (basic validation)
+        run: |
+          # Render with default values
+          helm template patchmon charts/patchmon > /tmp/patchmon.yaml
+
+      - name: kubeconform (K8s schema validation)
+        run: |
+          set -euo pipefail
+          KUBECONFORM_VERSION="0.7.0"
+          curl -sSL -o /usr/local/bin/kubeconform \
+            "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-amd64"
+          chmod +x /usr/local/bin/kubeconform
+          kubeconform -summary -strict -ignore-missing-schemas /tmp/patchmon.yaml
