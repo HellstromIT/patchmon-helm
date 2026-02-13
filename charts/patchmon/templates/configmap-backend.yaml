@@ -29,3 +29,26 @@ data:
   AGENT_RATE_LIMIT_MAX: {{ .Values.patchmon.rateLimit.agentMax | quote }}
 
   TZ: {{ .Values.patchmon.timezone | quote }}
+
+  {{- if .Values.patchmon.oidc.enabled }}
+  OIDC_ENABLED: "true"
+  OIDC_ISSUER_URL: {{ .Values.patchmon.oidc.issuerUrl | quote }}
+  OIDC_CLIENT_ID: {{ .Values.patchmon.oidc.clientId | quote }}
+  OIDC_REDIRECT_URI: {{ .Values.patchmon.oidc.redirectUri | quote }}
+  OIDC_SCOPES: {{ .Values.patchmon.oidc.scopes | quote }}
+  OIDC_AUTO_CREATE_USERS: {{ ternary "true" "false" .Values.patchmon.oidc.autoCreateUsers | quote }}
+  OIDC_DEFAULT_ROLE: {{ .Values.patchmon.oidc.defaultRole | quote }}
+  OIDC_BUTTON_TEXT: {{ .Values.patchmon.oidc.buttonText | quote }}
+
+  # From docs
+  OIDC_DISABLE_LOCAL_AUTH: {{ ternary "true" "false" .Values.patchmon.oidc.disableLocalAuth | quote }}
+  OIDC_SYNC_ROLES: {{ ternary "true" "false" .Values.patchmon.oidc.syncRoles | quote }}
+
+  {{- if .Values.patchmon.oidc.adminGroup }}
+  OIDC_ADMIN_GROUP: {{ .Values.patchmon.oidc.adminGroup | quote }}
+  {{- end }}
+  {{- if .Values.patchmon.oidc.userGroup }}
+  OIDC_USER_GROUP: {{ .Values.patchmon.oidc.userGroup | quote }}
+  {{- end }}
+  {{- end }}
+
