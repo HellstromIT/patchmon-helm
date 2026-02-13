@@ -60,6 +60,34 @@ patchmon:
     trustProxy: true
     enableHsts: true
 
+  oidc:
+    enabled: false
+
+    # Keycloak example:
+    # issuerUrl: https://keycloak.example.com/realms/your-realm
+    issuerUrl: ""
+
+    clientId: "patchmon"
+
+    # prefer secretRef; value is allowed but discouraged
+    clientSecret: ""
+    clientSecretFromSecret:
+      name: ""     # if set, chart will NOT create/store the secret
+      key: "client-secret"
+
+    redirectUri: "https://patchmon.example.com/api/v1/auth/oidc/callback"
+    scopes: "openid email profile groups"
+
+    autoCreateUsers: true
+    defaultRole: "user"
+    buttonText: "Login with Keycloak"
+
+    # From your docs
+    disableLocalAuth: false
+    syncRoles: false
+    adminGroup: "" # e.g. "patchmon-admins"
+    userGroup: ""  # e.g. "patchmon-users"
+
   jwt:
     # If empty, a random value is generated and persisted in the Secret via lookup.
     secret: ""

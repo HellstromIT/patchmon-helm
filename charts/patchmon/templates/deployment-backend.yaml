@@ -32,6 +32,19 @@ spec:
                   name: {{ include "patchmon.fullname" . }}
                   key: JWT_SECRET
 
+            {{- if .Values.patchmon.oidc.enabled }}
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  {{- if and .Values.patchmon.oidc.clientSecretFromSecret.name (ne .Values.patchmon.oidc.clientSecretFromSecret.name "") }}
+                  name: {{ .Values.patchmon.oidc.clientSecretFromSecret.name | quote }}
+                  key:  {{ .Values.patchmon.oidc.clientSecretFromSecret.key  | quote }}
+                  {{- else }}
+                  name: {{ include "patchmon.fullname" . | quote }}
+                  key:  OIDC_CLIENT_SECRET
+                  {{- end }}
+            {{- end }}
+
             # ----------------
             # Database settings
             # ----------------
