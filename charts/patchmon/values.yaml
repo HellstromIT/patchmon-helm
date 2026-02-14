@@ -234,7 +234,7 @@ livenessProbe:
     port: http
 readinessProbe:
   httpGet:
-    path: /ready
+    path: /health
     port: http
 
 pdb:
