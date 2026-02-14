@@ -7,17 +7,34 @@ metadata:
     {{- include "patchmon.labels" . | nindent 4 }}
 spec:
   parentRefs:
-    {{- toYaml .Values.gatewayAPI.parentRefs | nindent 4 }}
+    {{- range .Values.gatewayAPI.parentRefs }}
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ .name }}
+      namespace: {{ .namespace }}
+      {{- if .sectionName }}
+      sectionName: {{ .sectionName }}
+      {{- end }}
+    {{- end }}
   hostnames:
     {{- toYaml .Values.gatewayAPI.hostnames | nindent 4 }}
   rules:
-    {{- range .Values.gatewayAPI.rules }}
     - matches:
-        {{- toYaml .matches | nindent 8 }}
+        - path:
+            type: PathPrefix
+            value: /api
       backendRefs:
-        {{- range .backendRefs }}
-        - name: {{ include "patchmon.fullname" $ }}-{{ .name }}
-          port: {{ .port }}
-        {{- end }}
-    {{- end }}
+        - group: ""
+          kind: Service
+          name: {{ include "patchmon.fullname" . }}-backend
+          port: {{ .Values.service.backend.port }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ include "patchmon.fullname" . }}-frontend
+          port: {{ .Values.service.frontend.port }}
 {{- end }}
