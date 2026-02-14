@@ -12,6 +12,10 @@ replicaCount:
   backend: 1
   frontend: 1
 
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -155,6 +159,21 @@ postgres:
   storage:
     size: 10Gi
     # storageClassName: ""
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  securityContext:
+    runAsUser: 70
+    runAsGroup: 70
+    fsGroup: 70
+    runAsNonRoot: true
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
   auth:
     database: patchmon_db
     username: patchmon_user
@@ -226,4 +245,5 @@ pdb:
 nodeSelector: {}
 tolerations: []
 affinity: {}
+topologySpreadConstraints: []
 
