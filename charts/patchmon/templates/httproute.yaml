@@ -16,7 +16,7 @@ spec:
         {{- toYaml .matches | nindent 8 }}
       backendRefs:
         {{- range .backendRefs }}
-        - name: {{ include "patchmon.fullname" $ }}-frontend
+        - name: {{ include "patchmon.fullname" $ }}-{{ .name }}
           port: {{ .port }}
         {{- end }}
     {{- end }}

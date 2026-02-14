@@ -59,9 +59,17 @@ gatewayAPI:
     - matches:
         - path:
             type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: backend
+          port: 3001
+    - matches:
+        - path:
+            type: PathPrefix
             value: /
       backendRefs:
-        - port: 3000
+        - name: frontend
+          port: 3000
 
 ingress:
   enabled: false
@@ -70,8 +78,12 @@ ingress:
   hosts:
     - host: patchmon.example.com
       paths:
+        - path: /api
+          pathType: Prefix
+          service: backend
         - path: /
           pathType: Prefix
+          service: frontend
   tls: []
 
 

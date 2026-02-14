@@ -25,9 +25,9 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ include "patchmon.fullname" $ }}-frontend
+                name: {{ include "patchmon.fullname" $ }}-{{ .service }}
                 port:
-                  number: {{ $.Values.service.frontend.port }}
+                  number: {{ $.Values.service[ .service ].port }}
         {{- end }}
   {{- end }}
 {{- end }}
