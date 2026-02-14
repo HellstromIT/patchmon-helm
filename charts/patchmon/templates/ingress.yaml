@@ -27,7 +27,7 @@ spec:
               service:
                 name: {{ include "patchmon.fullname" $ }}-{{ .service }}
                 port:
-                  number: {{ $.Values.service[ .service ].port }}
+                  number: {{ (index $.Values.service (.service)).port }}
         {{- end }}
   {{- end }}
 {{- end }}
