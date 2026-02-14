@@ -14,7 +14,7 @@ This Helm chart deploys the PatchMon application (Backend + Frontend) with optio
 ## Installation
 
 ```bash
-helm repo add patchmon https://patchmon.github.io/charts
+helm repo add patchmon https://git.hellstrom.it/api/packages/Hellstrom/helm
 helm install my-patchmon patchmon/patchmon
 ```
 
