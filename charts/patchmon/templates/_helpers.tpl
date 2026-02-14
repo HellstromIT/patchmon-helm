@@ -6,15 +6,31 @@ patchmon
 {{- printf "%s-%s" .Release.Name (include "patchmon.name" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "patchmon.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
 {{- define "patchmon.labels" -}}
-app.kubernetes.io/name: {{ include "patchmon.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+helm.sh/chart: {{ include "patchmon.chart" . }}
+{{ include "patchmon.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{- define "patchmon.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "patchmon.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
+
+{{- define "patchmon.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "patchmon.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
 
 {{- define "patchmon.db.external.validate" -}}
 {{- if eq .Values.database.mode "external" -}}

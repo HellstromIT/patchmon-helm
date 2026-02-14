@@ -3,6 +3,9 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "patchmon.fullname" . }}-postgres
+  labels:
+    {{- include "patchmon.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
 spec:
   serviceName: {{ include "patchmon.fullname" . }}-postgres
   replicas: 1
@@ -16,6 +19,7 @@ spec:
         {{- include "patchmon.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: postgres
     spec:
+      serviceAccountName: {{ include "patchmon.serviceAccountName" . }}
       containers:
         - name: postgres
           image: {{ .Values.postgres.image | quote }}
