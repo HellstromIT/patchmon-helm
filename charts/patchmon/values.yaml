@@ -12,6 +12,32 @@ replicaCount:
   backend: 1
   frontend: 1
 
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
 service:
   backend:
     type: ClusterIP
@@ -129,10 +155,25 @@ database:
   mode: internal # internal | external
 
 postgres:
-  image: postgres:18-alpine
+  image: postgres:16-alpine
   storage:
     size: 10Gi
     # storageClassName: ""
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  securityContext:
+    runAsUser: 70
+    runAsGroup: 70
+    fsGroup: 70
+    runAsNonRoot: true
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
   auth:
     database: patchmon_db
     username: patchmon_user
@@ -175,8 +216,34 @@ valkey:
     persistence:
       size: 1Gi
 
-resources: {}
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+
+pdb:
+  create: false
+  minAvailable: 1
+  # maxUnavailable: 1
+
 nodeSelector: {}
 tolerations: []
 affinity: {}
+topologySpreadConstraints: []
 

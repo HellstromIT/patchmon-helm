@@ -3,6 +3,9 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "patchmon.fullname" . }}-postgres
+  labels:
+    {{- include "patchmon.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
 spec:
   serviceName: {{ include "patchmon.fullname" . }}-postgres
   replicas: 1
@@ -16,9 +19,30 @@ spec:
         {{- include "patchmon.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: postgres
     spec:
+      serviceAccountName: {{ include "patchmon.serviceAccountName" . }}
+      securityContext:
+        fsGroup: {{ .Values.postgres.securityContext.fsGroup }}
+        runAsUser: {{ .Values.postgres.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.postgres.securityContext.runAsGroup }}
+        runAsNonRoot: {{ .Values.postgres.securityContext.runAsNonRoot }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: postgres
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: {{ .Values.postgres.securityContext.runAsNonRoot }}
+            runAsUser: {{ .Values.postgres.securityContext.runAsUser }}
+            allowPrivilegeEscalation: false
           image: {{ .Values.postgres.image | quote }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
           ports:
             - containerPort: 5432
           env:
@@ -31,9 +55,29 @@ spec:
                 secretKeyRef:
                   name: {{ include "patchmon.postgres.passwordSecretName" . | quote }}
                   key: {{ include "patchmon.postgres.passwordSecretKey" . | quote }}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+      {{- with .Values.postgres.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
   volumeClaimTemplates:
     - metadata:
         name: data

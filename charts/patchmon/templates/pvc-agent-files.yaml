@@ -3,6 +3,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ include "patchmon.fullname" . }}-agent-files
+  labels:
+    {{- include "patchmon.labels" . | nindent 4 }}
 spec:
   accessModes: {{ toYaml .Values.patchmon.persistence.agentFiles.accessModes | nindent 2 }}
   resources:
