@@ -52,5 +52,14 @@ data:
   {{- if .Values.patchmon.oidc.userGroup }}
   OIDC_USER_GROUP: {{ .Values.patchmon.oidc.userGroup | quote }}
   {{- end }}
+  {{- if .Values.patchmon.oidc.superAdminGroup }}
+  OIDC_SUPERADMIN_GROUP: {{ .Values.patchmon.oidc.superAdminGroup | quote }}
+  {{- end }}
+  {{- if .Values.patchmon.oidc.hostManagerGroup }}
+  OIDC_HOST_MANAGER_GROUP: {{ .Values.patchmon.oidc.hostManagerGroup | quote }}
+  {{- end }}
+  {{- if .Values.patchmon.oidc.readOnlyGroup }}
+  OIDC_READONLY_GROUP: {{ .Values.patchmon.oidc.readOnlyGroup | quote }}
+  {{- end }}
   {{- end }}
 
