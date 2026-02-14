@@ -50,26 +50,11 @@ service:
 gatewayAPI:
   enabled: true
   parentRefs:
-    - name: main-gateway
-      namespace: kube-system
-      sectionName: https
+    - name: internal-gateway
+      namespace: gateways
+      # sectionName: https
   hostnames:
     - patchmon.example.com
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api
-      backendRefs:
-        - name: backend
-          port: 3001
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: frontend
-          port: 3000
 
 ingress:
   enabled: false
@@ -77,13 +62,6 @@ ingress:
   annotations: {}
   hosts:
     - host: patchmon.example.com
-      paths:
-        - path: /api
-          pathType: Prefix
-          service: backend
-        - path: /
-          pathType: Prefix
-          service: frontend
   tls: []
 
 

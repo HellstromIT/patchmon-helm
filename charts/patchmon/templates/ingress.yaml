@@ -20,14 +20,19 @@ spec:
     - host: {{ .host | quote }}
       http:
         paths:
-        {{- range .paths }}
-          - path: {{ .path | quote }}
-            pathType: {{ .pathType }}
+          - path: /api
+            pathType: Prefix
             backend:
               service:
-                name: {{ include "patchmon.fullname" $ }}-{{ .service }}
+                name: {{ include "patchmon.fullname" . }}-backend
                 port:
-                  number: {{ (index $.Values.service (.service)).port }}
-        {{- end }}
+                  number: {{ .Values.service.backend.port }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "patchmon.fullname" . }}-frontend
+                port:
+                  number: {{ .Values.service.frontend.port }}
   {{- end }}
 {{- end }}
