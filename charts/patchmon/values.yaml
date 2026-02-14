@@ -103,6 +103,9 @@ patchmon:
     syncRoles: false
     adminGroup: "" # e.g. "patchmon-admins"
     userGroup: ""  # e.g. "patchmon-users"
+    superAdminGroup: "" # e.g. "patchmon-superadmins"
+    hostManagerGroup: "" # e.g. "patchmon-hostmanagers"
+    readOnlyGroup: "" # e.g. "patchmon-readonly"
 
   jwt:
     # If empty, a random value is generated and persisted in the Secret via lookup.
