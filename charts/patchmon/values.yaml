@@ -224,7 +224,7 @@ resources:
 livenessProbe:
   backend:
     httpGet:
-      path: /api/v1/ws/status
+      path: /health
       port: http
     initialDelaySeconds: 10
     periodSeconds: 5
@@ -241,7 +241,7 @@ livenessProbe:
 readinessProbe:
   backend:
     httpGet:
-      path: /api/v1/ws/status
+      path: /health
       port: http
     initialDelaySeconds: 10
     periodSeconds: 5
