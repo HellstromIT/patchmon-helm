@@ -1,0 +1,45 @@
+name: PR Checks
+
+on:
+  pull_request:
+    paths:
+      - "charts/patchmon/**"
+
+jobs:
+  helm-lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2
+
+      - name: Add Helm repos needed for dependencies
+        run: |
+          helm repo add valkey https://valkey.io/valkey-helm/
+          helm repo update
+
+      - name: Build chart dependencies
+        run: helm dependency build charts/patchmon
+
+      - name: Ensure Chart.lock wasn't modified by CI
+        run: git diff --exit-code charts/patchmon/Chart.lock
+
+      - name: Lint chart
+        run: ct lint --target-branch ${{ github.event.repository.default_branch }} --charts charts/patchmon
+
+      - name: Render templates
+        run: helm template patchmon charts/patchmon > /tmp/patchmon.yaml
+
+      - name: Validate Kubernetes schemas
+        uses: docker://ghcr.io/yannh/kubeconform:latest
+        with:
+          args: "-summary -strict -ignore-missing-schemas /tmp/patchmon.yaml"
