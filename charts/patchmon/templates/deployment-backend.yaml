@@ -42,9 +42,9 @@ spec:
               containerPort: 3001
               protocol: TCP
           livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
+            {{- toYaml .Values.livenessProbe.backend | nindent 12 }}
           readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
+            {{- toYaml .Values.readinessProbe.backend | nindent 12 }}
           envFrom:
             - configMapRef:
                 name: {{ include "patchmon.fullname" . }}-backend
