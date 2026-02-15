@@ -5,6 +5,10 @@ type: application
 version: 0.2.8
 appVersion: "1.4.0"
 
+maintainers:
+  - name: HellstromIT
+    url: https://github.com/HellstromIT
+
 dependencies:
   - name: valkey
     version: "^0.9.2"
