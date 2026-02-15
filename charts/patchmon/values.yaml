@@ -101,11 +101,11 @@ patchmon:
     # From your docs
     disableLocalAuth: false
     syncRoles: false
-    adminGroup: "" # e.g. "patchmon-admins"
+    adminGroup: ""  # e.g. "patchmon-admins"
     userGroup: ""  # e.g. "patchmon-users"
-    superAdminGroup: "" # e.g. "patchmon-superadmins"
-    hostManagerGroup: "" # e.g. "patchmon-hostmanagers"
-    readOnlyGroup: "" # e.g. "patchmon-readonly"
+    superAdminGroup: ""  # e.g. "patchmon-superadmins"
+    hostManagerGroup: ""  # e.g. "patchmon-hostmanagers"
+    readOnlyGroup: ""  # e.g. "patchmon-readonly"
 
   jwt:
     # If empty, a random value is generated and persisted in the Secret via lookup.
@@ -145,7 +145,7 @@ patchmon:
 # Database configuration
 # -----------------------
 database:
-  mode: internal # internal | external
+  mode: internal  # internal | external
 
 postgres:
   image: postgres:16-alpine
@@ -187,7 +187,7 @@ external:
     port: 5432
     database: "patchmon_db"
     username: "patchmon_user"
-    password: "" # discouraged; prefer passwordFromSecret
+    password: ""  # discouraged; prefer passwordFromSecret
     passwordFromSecret:
       name: ""
       key: "password"
@@ -247,4 +247,3 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 topologySpreadConstraints: []
-
