@@ -2,7 +2,7 @@ apiVersion: v2
 name: patchmon
 description: PatchMon (backend + frontend) with optional Gateway API, Postgres, and Valkey
 type: application
-version: 0.2.8
+version: 0.2.9
 appVersion: "1.4.0"
 
 maintainers:

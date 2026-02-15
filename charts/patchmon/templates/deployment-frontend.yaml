@@ -41,9 +41,9 @@ spec:
               containerPort: 3000
               protocol: TCP
           livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
+            {{- toYaml .Values.livenessProbe.frontend | nindent 12 }}
           readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
+            {{- toYaml .Values.readinessProbe.frontend | nindent 12 }}
           env:
             - name: BACKEND_HOST
               value: {{ include "patchmon.fullname" . }}-backend
