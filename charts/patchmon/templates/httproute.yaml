@@ -22,19 +22,10 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /api
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: {{ include "patchmon.fullname" . }}-backend
-          port: {{ .Values.service.backend.port }}
-    - matches:
-        - path:
-            type: PathPrefix
             value: /
       backendRefs:
         - group: ""
           kind: Service
-          name: {{ include "patchmon.fullname" . }}-frontend
-          port: {{ .Values.service.frontend.port }}
+          name: {{ include "patchmon.fullname" . }}-server
+          port: {{ .Values.service.port }}
 {{- end }}
