@@ -134,13 +134,6 @@ patchmon:
 
   timezone: "UTC"
 
-  persistence:
-    agentFiles:
-      enabled: true
-      accessModes: ["ReadWriteOnce"]
-      size: 1Gi
-      storageClassName: ""
-
   redis:
     host: ""
     port: ""

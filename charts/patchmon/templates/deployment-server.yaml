@@ -177,9 +177,6 @@ spec:
               value: "localhost:4822"
             {{- end }}
 
-          volumeMounts:
-            - name: agent-files
-              mountPath: /app/agents
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
 
@@ -210,20 +207,13 @@ spec:
               mountPath: /tmp
         {{- end }}
 
+      {{- if .Values.guacd.enabled }}
       volumes:
-        - name: agent-files
-          {{- if .Values.patchmon.persistence.agentFiles.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ include "patchmon.fullname" . }}-agent-files
-          {{- else }}
-          emptyDir: {}
-          {{- end }}
-        {{- if .Values.guacd.enabled }}
         - name: guacd-tmp
           emptyDir:
             medium: Memory
             sizeLimit: 64Mi
-        {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
