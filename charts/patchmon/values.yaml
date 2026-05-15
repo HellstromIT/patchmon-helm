@@ -234,6 +234,18 @@ valkey:
 
 resources: {}
 
+# startupProbe guards slow DB migrations on upgrade. While it runs,
+# liveness/readiness are disabled, giving the server up to
+# failureThreshold * periodSeconds (~5 min below) to finish migrations
+# before the kubelet starts killing the container. Set to {} to disable.
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30
+
 livenessProbe:
   httpGet:
     path: /health
