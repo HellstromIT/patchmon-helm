@@ -2,6 +2,25 @@ apiVersion: v1
 entries:
   patchmon:
   - apiVersion: v2
+    appVersion: 2.0.2
+    created: "2026-05-15T14:21:21.700863396Z"
+    dependencies:
+    - condition: valkey.enabled
+      name: valkey
+      repository: https://valkey.io/valkey-helm/
+      version: ^0.9.2
+    description: PatchMon v2 – Linux patch management platform with optional Gateway
+      API, Postgres, Valkey, and Guacd
+    digest: 980d71b583d601570e134f9c55c02044512c3152fa27f617b41998e5c5e460f4
+    maintainers:
+    - name: HellstromIT
+      url: https://github.com/HellstromIT
+    name: patchmon
+    type: application
+    urls:
+    - https://github.com/HellstromIT/patchmon-helm/releases/download/patchmon-0.3.1/patchmon-0.3.1.tgz
+    version: 0.3.1
+  - apiVersion: v2
     appVersion: 1.4.0
     created: "2026-02-15T16:40:00.489315784Z"
     dependencies:
@@ -58,4 +77,4 @@ entries:
     urls:
     - https://github.com/HellstromIT/patchmon-helm/releases/download/patchmon-0.2.8/patchmon-0.2.8.tgz
     version: 0.2.8
-generated: "2026-02-15T16:40:00.489323355Z"
+generated: "2026-05-15T14:21:21.700889726Z"
