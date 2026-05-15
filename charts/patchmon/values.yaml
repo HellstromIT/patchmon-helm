@@ -1,28 +1,19 @@
 image:
-  backend:
-    repository: ghcr.io/patchmon/patchmon-backend
-    # tag: latest
-    pullPolicy: IfNotPresent
-  frontend:
-    repository: ghcr.io/patchmon/patchmon-frontend
-    # tag: latest
+  server:
+    repository: ghcr.io/patchmon/patchmon-server
+    # tag defaults to Chart.appVersion
+    # tag: ""
     pullPolicy: IfNotPresent
 
-replicaCount:
-  backend: 1
-  frontend: 1
+replicaCount: 1
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 podAnnotations: {}
@@ -39,14 +30,12 @@ securityContext:
   runAsUser: 1000
 
 service:
-  backend:
-    type: ClusterIP
-    port: 3001
-  frontend:
-    type: ClusterIP
-    port: 3000
+  type: ClusterIP
+  port: 3000
 
-# Choose ONE exposure method
+# -----------------------------------------------------------
+# Choose ONE exposure method (gatewayAPI OR ingress)
+# -----------------------------------------------------------
 gatewayAPI:
   enabled: true
   parentRefs:
@@ -64,61 +53,70 @@ ingress:
     - host: patchmon.example.com
   tls: []
 
-
+# -----------------------------------------------------------
+# PatchMon application settings
+# -----------------------------------------------------------
 patchmon:
   logLevel: info
 
   server:
-    protocol: https
-    host: patchmon.example.com
-    port: 443
     corsOrigin: https://patchmon.example.com
     trustProxy: true
     enableHsts: true
+    # port: 3000  # override the listening port inside the container
 
   oidc:
     enabled: false
-
-    # Keycloak example:
-    # issuerUrl: https://keycloak.example.com/realms/your-realm
     issuerUrl: ""
-
     clientId: "patchmon"
-
-    # prefer secretRef; value is allowed but discouraged
     clientSecret: ""
     clientSecretFromSecret:
-      name: ""     # if set, chart will NOT create/store the secret
+      name: ""
       key: "client-secret"
-
     redirectUri: "https://patchmon.example.com/api/v1/auth/oidc/callback"
     scopes: "openid email profile groups"
-
     autoCreateUsers: true
     defaultRole: "user"
-    buttonText: "Login with Keycloak"
-
-    # From your docs
+    buttonText: "Login with SSO"
     disableLocalAuth: false
     syncRoles: false
-    adminGroup: ""  # e.g. "patchmon-admins"
-    userGroup: ""  # e.g. "patchmon-users"
-    superAdminGroup: ""  # e.g. "patchmon-superadmins"
-    hostManagerGroup: ""  # e.g. "patchmon-hostmanagers"
-    readOnlyGroup: ""  # e.g. "patchmon-readonly"
+    enforceHttps: true
+    sessionTtl: 600
+    postLogoutUri: ""
+    adminGroup: ""
+    userGroup: ""
+    superAdminGroup: ""
+    hostManagerGroup: ""
+    readOnlyGroup: ""
 
   jwt:
     # If empty, a random value is generated and persisted in the Secret via lookup.
     secret: ""
     expiresIn: "1h"
-    refreshExpiresIn: "7d"
+
+  auth:
+    maxLoginAttempts: 5
+    lockoutDurationMinutes: 15
+    sessionInactivityTimeoutMinutes: 30
+    browserSessionCookies: true
+    tfaMaxRememberSessions: 5
+    maxTfaAttempts: 5
+    tfaLockoutDurationMinutes: 30
+    tfaRememberMeExpiresIn: "30d"
+
+  passwordPolicy:
+    minLength: 8
+    requireUppercase: true
+    requireLowercase: true
+    requireNumber: true
+    requireSpecial: true
 
   dbPool:
     connectionLimit: 30
-    poolTimeout: 20
     connectTimeout: 10
-    idleTimeout: 300
-    maxLifetime: 1800
+    transactionLongTimeout: 60000
+    connMaxAttempts: 30
+    connWaitInterval: 2
 
   rateLimit:
     windowMs: 900000
@@ -127,6 +125,12 @@ patchmon:
     authMax: 500
     agentWindowMs: 60000
     agentMax: 1000
+    passwordWindowMs: 900000
+    passwordMax: 5
+
+  bodyLimits:
+    json: "5mb"
+    agentUpdate: "2mb"
 
   timezone: "UTC"
 
@@ -139,26 +143,43 @@ patchmon:
 
   redis:
     host: ""
+    port: ""
     db: 0
+    tls: false
+    tlsVerify: false
+    # tlsCa: ""
+    connectTimeoutMs: 60000
+    commandTimeoutMs: 60000
 
-# -----------------------
+# -----------------------------------------------------------
+# Guacd sidecar (Windows RDP support)
+# -----------------------------------------------------------
+guacd:
+  enabled: true
+  image: guacamole/guacd:latest
+  pullPolicy: IfNotPresent
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: "1.0"
+  securityContext:
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+      - ALL
+
+# -----------------------------------------------------------
 # Database configuration
-# -----------------------
+# -----------------------------------------------------------
 database:
   mode: internal  # internal | external
 
 postgres:
-  image: postgres:16-alpine
+  image: postgres:17-alpine
   storage:
     size: 10Gi
     # storageClassName: ""
   resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
   securityContext:
     runAsUser: 70
     runAsGroup: 70
@@ -176,30 +197,32 @@ postgres:
 
 external:
   postgres:
-    # If uri is set (direct or from secret), other values are ignored.
     uri: ""
     uriFromSecret:
-      name: ""     # CNPG: "<clusterName>-app"
+      name: ""
       key: "uri"
-
-    # Used only when uri isn't set
     host: ""
     port: 5432
     database: "patchmon_db"
     username: "patchmon_user"
-    password: ""  # discouraged; prefer passwordFromSecret
+    password: ""
     passwordFromSecret:
       name: ""
       key: "password"
+    sslMode: ""
 
-    # Optional if you are constructing (ignored if uri is used)
-    sslMode: ""  # e.g. "require"
-
-# -----------------------
-# Valkey
-# -----------------------
+# -----------------------------------------------------------
+# Valkey (Redis-compatible cache/queue)
+# -----------------------------------------------------------
 valkey:
   enabled: true
+
+  # To enable Valkey auth, set auth.enabled: true and configure aclUsers.
+  # You must also set auth.usersExistingSecret to the chart secret name
+  # (e.g. "<release>-patchmon") with passwordKey: REDIS_PASSWORD, or
+  # provide an inline password. See the Valkey chart docs for details.
+  auth:
+    enabled: false
 
   service:
     port: 6379
@@ -209,52 +232,47 @@ valkey:
     persistence:
       size: 1Gi
 
-resources:
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+resources: {}
+
+# startupProbe guards slow DB migrations on upgrade. While it runs,
+# liveness/readiness are disabled, giving the server up to
+# failureThreshold * periodSeconds (~5 min below) to finish migrations
+# before the kubelet starts killing the container. Set to {} to disable.
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+    # Host must be loopback — the server's CORS middleware returns 403
+    # host_mismatch for any Host not in CORS_ORIGIN (the pod IP would fail).
+    httpHeaders:
+      - name: Host
+        value: localhost
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30
 
 livenessProbe:
-  backend:
-    httpGet:
-      path: /health
-      port: http
-    initialDelaySeconds: 10
-    periodSeconds: 5
-    timeoutSeconds: 3
-    failureThreshold: 3
-  frontend:
-    httpGet:
-      path: /health
-      port: http
-    initialDelaySeconds: 10
-    periodSeconds: 5
-    timeoutSeconds: 3
-    failureThreshold: 3
+  httpGet:
+    path: /health
+    port: http
+    httpHeaders:
+      - name: Host
+        value: localhost
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
 readinessProbe:
-  backend:
-    httpGet:
-      path: /health
-      port: http
-    initialDelaySeconds: 10
-    periodSeconds: 5
-    timeoutSeconds: 3
-    failureThreshold: 3
-  frontend:
-    httpGet:
-      path: /health
-      port: http
-    initialDelaySeconds: 10
-    periodSeconds: 5
-    timeoutSeconds: 3
-    failureThreshold: 3
+  httpGet:
+    path: /health
+    port: http
+    httpHeaders:
+      - name: Host
+        value: localhost
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
 
 pdb:
   create: false

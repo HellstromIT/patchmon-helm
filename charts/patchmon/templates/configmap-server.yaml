@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "patchmon.fullname" . }}-server
+  labels:
+    {{- include "patchmon.labels" . | nindent 4 }}
+data:
+  LOG_LEVEL: {{ .Values.patchmon.logLevel | quote }}
+  CORS_ORIGIN: {{ .Values.patchmon.server.corsOrigin | quote }}
+  TRUST_PROXY: {{ .Values.patchmon.server.trustProxy | quote }}
+  ENABLE_HSTS: {{ .Values.patchmon.server.enableHsts | quote }}
+  {{- if .Values.patchmon.server.port }}
+  PORT: {{ .Values.patchmon.server.port | quote }}
+  {{- end }}
+
+  JWT_EXPIRES_IN: {{ .Values.patchmon.jwt.expiresIn | quote }}
+
+  # Auth / lockout
+  MAX_LOGIN_ATTEMPTS: {{ .Values.patchmon.auth.maxLoginAttempts | quote }}
+  LOCKOUT_DURATION_MINUTES: {{ .Values.patchmon.auth.lockoutDurationMinutes | quote }}
+  SESSION_INACTIVITY_TIMEOUT_MINUTES: {{ .Values.patchmon.auth.sessionInactivityTimeoutMinutes | quote }}
+  AUTH_BROWSER_SESSION_COOKIES: {{ .Values.patchmon.auth.browserSessionCookies | quote }}
+  TFA_MAX_REMEMBER_SESSIONS: {{ .Values.patchmon.auth.tfaMaxRememberSessions | quote }}
+  MAX_TFA_ATTEMPTS: {{ .Values.patchmon.auth.maxTfaAttempts | quote }}
+  TFA_LOCKOUT_DURATION_MINUTES: {{ .Values.patchmon.auth.tfaLockoutDurationMinutes | quote }}
+  TFA_REMEMBER_ME_EXPIRES_IN: {{ .Values.patchmon.auth.tfaRememberMeExpiresIn | quote }}
+
+  # Password policy
+  PASSWORD_MIN_LENGTH: {{ .Values.patchmon.passwordPolicy.minLength | quote }}
+  PASSWORD_REQUIRE_UPPERCASE: {{ .Values.patchmon.passwordPolicy.requireUppercase | quote }}
+  PASSWORD_REQUIRE_LOWERCASE: {{ .Values.patchmon.passwordPolicy.requireLowercase | quote }}
+  PASSWORD_REQUIRE_NUMBER: {{ .Values.patchmon.passwordPolicy.requireNumber | quote }}
+  PASSWORD_REQUIRE_SPECIAL: {{ .Values.patchmon.passwordPolicy.requireSpecial | quote }}
+
+  # DB pool
+  DB_CONNECTION_LIMIT: {{ .Values.patchmon.dbPool.connectionLimit | quote }}
+  DB_CONNECT_TIMEOUT: {{ .Values.patchmon.dbPool.connectTimeout | quote }}
+  DB_TRANSACTION_LONG_TIMEOUT: {{ .Values.patchmon.dbPool.transactionLongTimeout | quote }}
+  PM_DB_CONN_MAX_ATTEMPTS: {{ .Values.patchmon.dbPool.connMaxAttempts | quote }}
+  PM_DB_CONN_WAIT_INTERVAL: {{ .Values.patchmon.dbPool.connWaitInterval | quote }}
+
+  # Rate limits
+  RATE_LIMIT_WINDOW_MS: {{ .Values.patchmon.rateLimit.windowMs | quote }}
+  RATE_LIMIT_MAX: {{ .Values.patchmon.rateLimit.max | quote }}
+  AUTH_RATE_LIMIT_WINDOW_MS: {{ .Values.patchmon.rateLimit.authWindowMs | quote }}
+  AUTH_RATE_LIMIT_MAX: {{ .Values.patchmon.rateLimit.authMax | quote }}
+  AGENT_RATE_LIMIT_WINDOW_MS: {{ .Values.patchmon.rateLimit.agentWindowMs | quote }}
+  AGENT_RATE_LIMIT_MAX: {{ .Values.patchmon.rateLimit.agentMax | quote }}
+  PASSWORD_RATE_LIMIT_WINDOW_MS: {{ .Values.patchmon.rateLimit.passwordWindowMs | quote }}
+  PASSWORD_RATE_LIMIT_MAX: {{ .Values.patchmon.rateLimit.passwordMax | quote }}
+
+  # Body limits
+  JSON_BODY_LIMIT: {{ .Values.patchmon.bodyLimits.json | quote }}
+  AGENT_UPDATE_BODY_LIMIT: {{ .Values.patchmon.bodyLimits.agentUpdate | quote }}
+
+  # Redis TLS
+  {{- if .Values.patchmon.redis.tls }}
+  REDIS_TLS: "true"
+  REDIS_TLS_VERIFY: {{ .Values.patchmon.redis.tlsVerify | quote }}
+  {{- if .Values.patchmon.redis.tlsCa }}
+  REDIS_TLS_CA: {{ .Values.patchmon.redis.tlsCa | quote }}
+  {{- end }}
+  {{- end }}
+  REDIS_CONNECT_TIMEOUT_MS: {{ .Values.patchmon.redis.connectTimeoutMs | quote }}
+  REDIS_COMMAND_TIMEOUT_MS: {{ .Values.patchmon.redis.commandTimeoutMs | quote }}
+
+  TZ: {{ .Values.patchmon.timezone | quote }}
+
+  {{- if .Values.patchmon.oidc.enabled }}
+  OIDC_ENABLED: "true"
+  {{- /* go-oidc does strict issuer matching; a trailing slash breaks discovery */}}
+  OIDC_ISSUER_URL: {{ .Values.patchmon.oidc.issuerUrl | trimSuffix "/" | quote }}
+  OIDC_CLIENT_ID: {{ .Values.patchmon.oidc.clientId | quote }}
+  OIDC_REDIRECT_URI: {{ .Values.patchmon.oidc.redirectUri | quote }}
+  OIDC_SCOPES: {{ .Values.patchmon.oidc.scopes | quote }}
+  OIDC_AUTO_CREATE_USERS: {{ ternary "true" "false" .Values.patchmon.oidc.autoCreateUsers | quote }}
+  OIDC_DEFAULT_ROLE: {{ .Values.patchmon.oidc.defaultRole | quote }}
+  OIDC_BUTTON_TEXT: {{ .Values.patchmon.oidc.buttonText | quote }}
+  OIDC_DISABLE_LOCAL_AUTH: {{ ternary "true" "false" .Values.patchmon.oidc.disableLocalAuth | quote }}
+  OIDC_SYNC_ROLES: {{ ternary "true" "false" .Values.patchmon.oidc.syncRoles | quote }}
+  OIDC_ENFORCE_HTTPS: {{ ternary "true" "false" .Values.patchmon.oidc.enforceHttps | quote }}
+  OIDC_SESSION_TTL: {{ .Values.patchmon.oidc.sessionTtl | quote }}
+  {{- if .Values.patchmon.oidc.postLogoutUri }}
+  OIDC_POST_LOGOUT_URI: {{ .Values.patchmon.oidc.postLogoutUri | quote }}
+  {{- end }}
+  {{- if .Values.patchmon.oidc.adminGroup }}
+  OIDC_ADMIN_GROUP: {{ .Values.patchmon.oidc.adminGroup | quote }}
+  {{- end }}
+  {{- if .Values.patchmon.oidc.userGroup }}
+  OIDC_USER_GROUP: {{ .Values.patchmon.oidc.userGroup | quote }}
+  {{- end }}
+  {{- if .Values.patchmon.oidc.superAdminGroup }}
+  OIDC_SUPERADMIN_GROUP: {{ .Values.patchmon.oidc.superAdminGroup | quote }}
+  {{- end }}
+  {{- if .Values.patchmon.oidc.hostManagerGroup }}
+  OIDC_HOST_MANAGER_GROUP: {{ .Values.patchmon.oidc.hostManagerGroup | quote }}
+  {{- end }}
+  {{- if .Values.patchmon.oidc.readOnlyGroup }}
+  OIDC_READONLY_GROUP: {{ .Values.patchmon.oidc.readOnlyGroup | quote }}
+  {{- end }}
+  {{- end }}

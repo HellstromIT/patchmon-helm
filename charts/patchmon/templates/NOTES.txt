@@ -1,10 +1,7 @@
-PatchMon installed.
+PatchMon v2 installed.
 
-Frontend:
-  Service: {{ include "patchmon.fullname" . }}-frontend:{{ .Values.service.frontend.port }}
-
-Backend:
-  Service: {{ include "patchmon.fullname" . }}-backend:{{ .Values.service.backend.port }}
+Server:
+  Service: {{ include "patchmon.fullname" . }}-server:{{ .Values.service.port }}
 
 Exposure:
 {{- if .Values.gatewayAPI.enabled }}
@@ -13,6 +10,11 @@ Exposure:
 {{- if .Values.ingress.enabled }}
   Ingress: {{ include "patchmon.fullname" . }}
 {{- end }}
+{{- if not (or .Values.gatewayAPI.enabled .Values.ingress.enabled) }}
+  None configured — access via port-forward:
+    kubectl port-forward svc/{{ include "patchmon.fullname" . }}-server {{ .Values.service.port }}:{{ .Values.service.port }}
+{{- end }}
 
 Database mode: {{ .Values.database.mode }}
-Valkey subchart enabled: {{ .Values.valkey.enabled }}
+Valkey enabled: {{ .Values.valkey.enabled }}
+Guacd sidecar: {{ .Values.guacd.enabled }}
