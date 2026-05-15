@@ -68,7 +68,8 @@ data:
 
   {{- if .Values.patchmon.oidc.enabled }}
   OIDC_ENABLED: "true"
-  OIDC_ISSUER_URL: {{ .Values.patchmon.oidc.issuerUrl | quote }}
+  {{- /* go-oidc does strict issuer matching; a trailing slash breaks discovery */}}
+  OIDC_ISSUER_URL: {{ .Values.patchmon.oidc.issuerUrl | trimSuffix "/" | quote }}
   OIDC_CLIENT_ID: {{ .Values.patchmon.oidc.clientId | quote }}
   OIDC_REDIRECT_URI: {{ .Values.patchmon.oidc.redirectUri | quote }}
   OIDC_SCOPES: {{ .Values.patchmon.oidc.scopes | quote }}
