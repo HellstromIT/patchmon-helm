@@ -94,6 +94,18 @@ patchmon:
     secret: ""
     expiresIn: "1h"
 
+  session:
+    # If empty, a random value is generated and persisted in the Secret via lookup.
+    # Note: the lookup fallback only works with `helm upgrade`/`install` against a live
+    # cluster — GitOps controllers that render via `helm template` (e.g. ArgoCD) always
+    # see an empty lookup result, so leaving this blank there means a new random value
+    # (and pod restart via the checksum/secret annotation) on every render.
+    secret: ""
+
+  encryption:
+    # Same lookup caveat as patchmon.session.secret above.
+    aiKey: ""
+
   auth:
     maxLoginAttempts: 5
     lockoutDurationMinutes: 15
