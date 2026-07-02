@@ -2,7 +2,7 @@ apiVersion: v2
 name: patchmon
 description: PatchMon v2 – Linux patch management platform with optional Gateway API, Postgres, Valkey, and Guacd
 type: application
-version: 0.3.2
+version: 0.3.3
 appVersion: "2.0.2"
 
 maintainers:
