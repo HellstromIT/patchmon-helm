@@ -62,10 +62,14 @@ spec:
               mountPath: /var/lib/postgresql/data
             - name: dshm
               mountPath: /dev/shm
+            - name: run
+              mountPath: /var/run/postgresql
       volumes:
         - name: dshm
           emptyDir:
             medium: Memory
+        - name: run
+          emptyDir: {}
       {{- with .Values.postgres.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
